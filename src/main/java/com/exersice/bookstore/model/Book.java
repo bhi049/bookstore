@@ -52,7 +52,7 @@ public class Book {
         this.author = author;
     }
 
-    public int getpublicationYear() {
+    public int getPublicationYear() {
         return publicationYear;
     }
 

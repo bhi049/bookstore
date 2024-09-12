@@ -28,9 +28,7 @@ public class BookController {
     @GetMapping("/booklist")
     public String showBookList(Model model) {
       List<Book> books = (List<Book>) bookRepository.findAll();
-
       model.addAttribute("books", books);
-
       return "booklist";
     }
   }

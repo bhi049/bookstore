@@ -13,8 +13,8 @@ public class LoadDatabase {
   @Bean
   CommandLineRunner initDatabase(BookRepository repository) {
     return args -> {
-      repository.save(new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "9780743273565", 10.99));
-            repository.save(new Book("1984", "George Orwell", 1949, "9780451524935", 8.99));
+      repository.save(new Book("A Farewell to Arms", "Ernest Hemingway", 1929, "1232323-21", 10.99));
+      repository.save(new Book("Animal Farm", "George Orwell", 1945, "2212343-5", 8.99));
     };
   }
 }
