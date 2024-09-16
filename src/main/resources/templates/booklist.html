@@ -21,9 +21,10 @@
         <td th:text = "${book.id}"></td>
         <td th:text = "${book.title}"></td>
         <td th:text = "${book.author}"></td>
-        <td th:text = "${book.PublicationYear}"></td>
+        <td th:text = "${book.publicationYear}"></td>
         <td th:text = "${book.isbn}"></td>
         <td th:text = "${book.price}"></td>
+        <td th:text = "${book.category.name}"></td>
         <td>
           <a th:href="@{/booklist/edit/{id}(id=${book.id})}">Edit</a>
           <a th:href="@{/booklist/delete/{id}(id=${book.id})}">Delete</a>

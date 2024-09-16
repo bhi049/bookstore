@@ -10,20 +10,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import com.exersice.bookstore.model.Book;
 import com.exersice.bookstore.model.BookRepository;
+import com.exersice.bookstore.model.Category;
+import com.exersice.bookstore.model.CategoryRepository;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-
-
 
 
 @Controller
 public class BookController {
 
   private final BookRepository bookRepository;
+  private final CategoryRepository categoryRepository;
 
-  public BookController(BookRepository bookRepository) {
+  public BookController(BookRepository bookRepository, CategoryRepository categoryRepository) {
     this.bookRepository = bookRepository;
+    this.categoryRepository = categoryRepository;
   }
 
     @GetMapping("/index")
@@ -42,14 +43,21 @@ public class BookController {
     @GetMapping("/addbook")
     public String showAddBookForm(Model model) {
       model.addAttribute("book", new Book());
+      model.addAttribute("categories", categoryRepository.findAll());
       return "addbook";
     }
     
 
     @PostMapping("/addbook")
-    public String addBook(@ModelAttribute Book book) {
-        bookRepository.save(book);
-        return "redirect:/booklist";
+    public String addBook(@ModelAttribute Book book, @RequestParam("categoryId") Long categoryId) {
+      // Fetch the Category by ID
+      Category category = categoryRepository.findById(categoryId)
+              .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + categoryId));
+      // Set the category to the book
+      book.setCategory(category);
+      // Save the book with the category set
+      bookRepository.save(book);
+      return "redirect:/booklist";
     }
     
     @GetMapping("/booklist/delete/{id}")
@@ -60,17 +68,28 @@ public class BookController {
 
     @GetMapping("/booklist/edit/{id}")
     public String showEditBookForm(@PathVariable Long id, Model model) {
-      Book book = bookRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid book ID:" + id));
-      model.addAttribute("book", book);  
-      return "editbook";  
-  }
+        Book book = bookRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid book ID:" + id));
+        model.addAttribute("book", book);
+        model.addAttribute("categories", categoryRepository.findAll());  
+        return "editbook";  
+    }
 
     @PostMapping("/booklist/edit/{id}")
-    public String editBook(@PathVariable Long id, @ModelAttribute Book book) {
-      bookRepository.save(book); 
-      return "redirect:/booklist";  
-}
-    
+    public String editBook(@PathVariable Long id, @ModelAttribute Book updatedBook, @RequestParam("categoryId") Long categoryId) {
+      Book book = bookRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid book ID:" + id));
+      
+      Category category = categoryRepository.findById(categoryId)
+              .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + categoryId));
+      book.setCategory(category);
 
+        book.setTitle(updatedBook.getTitle());
+        book.setAuthor(updatedBook.getAuthor());
+        book.setPublicationYear(updatedBook.getPublicationYear());
+        book.setIsbn(updatedBook.getIsbn());
+        book.setPrice(updatedBook.getPrice());
+        book.setCategory(updatedBook.getCategory());
 
-  }
+        bookRepository.save(book); 
+        return "redirect:/booklist";
+    }
+ }
