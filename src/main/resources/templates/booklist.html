@@ -1,36 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.com">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Book List</title>
 </head>
 <body>
   <h1>Books</h1>
-  <table border = "1">
+  <table border="1">
     <thead>
       <tr>
-        <th>ID</th>
         <th>Title</th>
         <th>Author</th>
-        <th>PublicationYear</th>
+        <th>Publication Year</th>
         <th>ISBN</th>
         <th>Price</th>
+        <th>Category</th>
       </tr>
     </thead>
     <tbody>
-      <tr th:each = "book : ${books}">
-        <td th:text = "${book.id}"></td>
-        <td th:text = "${book.title}"></td>
-        <td th:text = "${book.author}"></td>
-        <td th:text = "${book.publicationYear}"></td>
-        <td th:text = "${book.isbn}"></td>
-        <td th:text = "${book.price}"></td>
-        <td th:text = "${book.category.name}"></td>
+      <tr th:each="book : ${books}">
+        <td th:text="${book.title}"></td>
+        <td th:text="${book.author}"></td>
+        <td th:text="${book.publicationYear}"></td>
+        <td th:text="${book.isbn}"></td>
+        <td th:text="${book.price}"></td>
+        <td th:text="${book.category.name}"></td>
         <td>
           <a th:href="@{/booklist/edit/{id}(id=${book.id})}">Edit</a>
           <a th:href="@{/booklist/delete/{id}(id=${book.id})}">Delete</a>
         </td>
+      </tr>
     </tbody>
   </table>
   <p><a href="/addbook">Add Book</a></p>
 </body>
 </html>
+
