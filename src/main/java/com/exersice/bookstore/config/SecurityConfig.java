@@ -2,17 +2,26 @@ package com.exersice.bookstore.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+  private final UserDetailsService userDetailsService;
+
+  public SecurityConfig(UserDetailsService userDetailsService) {
+      this.userDetailsService = userDetailsService;
+  }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -24,33 +33,35 @@ public class SecurityConfig {
       .formLogin((form) ->
         form
         .loginPage("/login")
-        .defaultSuccessUrl("/booklist", true)  // Redirect to booklist after login
+        .defaultSuccessUrl("/booklist", true)
         .permitAll()
       )
       .logout((logout) -> 
         logout
-        .logoutUrl("/logout")  // Specify the logout URL
-        .logoutSuccessUrl("/login?logout")  // Redirect to login page after logout
+        .logoutSuccessUrl("/login?logout")
         .permitAll()
       );
     return http.build();
   }
 
+  // Add AuthenticationManager bean
   @Bean
-  public UserDetailsService userDetailsService() {
-      UserDetails user = User.withDefaultPasswordEncoder()
-          .username("user")
-          .password("password")
-          .roles("USER")
-          .build();
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+  }
 
-      UserDetails admin = User.withDefaultPasswordEncoder()
-          .username("admin")
-          .password("admin")
-          .roles("ADMIN")
-          .build();
+  // DaoAuthenticationProvider bean
+  @Bean
+  public DaoAuthenticationProvider authenticationProvider() {
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    authProvider.setUserDetailsService(userDetailsService);
+    authProvider.setPasswordEncoder(passwordEncoder());
+    return authProvider;
+  }
 
-      return new InMemoryUserDetailsManager(user, admin);
+  // Password encoder
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 }
-
