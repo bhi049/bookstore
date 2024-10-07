@@ -1,6 +1,6 @@
 package com.exersice.bookstore.service;
 
-import com.exersice.bookstore.model.User; // Your custom User entity
+import com.exersice.bookstore.model.User;
 import com.exersice.bookstore.model.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,13 +19,16 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Find the user by username
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + username));
 
-        UserBuilder builder = org.springframework.security.core.userdetails.User.withUsername(user.getUsername());
-        builder.password(user.getPassword()); // Password should already be hashed with BCrypt
-        builder.roles(user.getRole()); // Assuming roles like "USER", "ADMIN"
+        // Build UserDetails object
+        UserBuilder builder = org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                .password(user.getPassword())  // Password is already encoded with BCrypt
+                .roles(user.getRole());  // e.g., "USER", "ADMIN"
 
         return builder.build();
     }
 }
+

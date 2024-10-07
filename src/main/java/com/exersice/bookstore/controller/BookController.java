@@ -100,4 +100,6 @@ public class BookController {
     public String login() {
         return "login";
     }
+
+    // Logout functionality handled by Spring Security automatically
 }

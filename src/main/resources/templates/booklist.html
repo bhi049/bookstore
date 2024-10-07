@@ -5,15 +5,11 @@
 </head>
 <body>
     <h1>Books</h1>
-    
-    <!-- Display the authenticated username -->
+    <!-- Display the logged-in username -->
     <p>Logged in as: <span th:text="${#authentication.name}"></span></p>
+    <a th:href="@{/logout}">Logout</a>
 
-    <!-- Form-based logout to avoid Whitelabel error -->
-    <form th:action="@{/logout}" method="post">
-        <button type="submit">Logout</button>
-    </form>
-
+    <!-- Display the book list -->
     <table border="1">
         <thead>
             <tr>
@@ -35,10 +31,10 @@
                 <td th:text="${book.price}"></td>
                 <td th:text="${book.category.name}"></td>
                 <td>
-                    <!-- Always show the Edit link -->
+                    <!-- Edit book action -->
                     <a th:href="@{/booklist/edit/{id}(id=${book.id})}">Edit</a>
                     
-                    <!-- Show the Delete link only for users with ADMIN role -->
+                    <!-- Delete book action (visible only to users with ADMIN role) -->
                     <span th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                         <a th:href="@{/booklist/delete/{id}(id=${book.id})}">Delete</a>
                     </span>
@@ -47,7 +43,15 @@
         </tbody>
     </table>
 
-    <!-- Add Book link -->
+    <!-- Add new book link -->
     <p><a href="/addbook">Add Book</a></p>
+
+    <!-- Optional success/error messages after delete operation -->
+    <div th:if="${param.success}">
+        <p style="color:green;">Book successfully deleted!</p>
+    </div>
+    <div th:if="${param.error}">
+        <p style="color:red;">Error occurred while deleting the book!</p>
+    </div>
 </body>
 </html>

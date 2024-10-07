@@ -1,67 +1,56 @@
 package com.exersice.bookstore.config;
 
+import com.exersice.bookstore.service.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private final UserDetailsService userDetailsService;
+    private final MyUserDetailsService myUserDetailsService;
 
-  public SecurityConfig(UserDetailsService userDetailsService) {
-      this.userDetailsService = userDetailsService;
-  }
+    public SecurityConfig(MyUserDetailsService myUserDetailsService) {
+        this.myUserDetailsService = myUserDetailsService;
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-      .authorizeHttpRequests((requests) -> requests
-        .requestMatchers("/booklist/delete/**").hasRole("ADMIN")
-        .anyRequest().authenticated()
-      )
-      .formLogin((form) ->
-        form
-        .loginPage("/login")
-        .defaultSuccessUrl("/booklist", true)
-        .permitAll()
-      )
-      .logout((logout) -> 
-        logout
-        .logoutSuccessUrl("/login?logout")
-        .permitAll()
-      );
-    return http.build();
-  }
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests((requests) -> requests
+                .requestMatchers("/h2-console/**").permitAll()  // Allow access to H2 console
+                .requestMatchers("/booklist/delete/**").hasRole("ADMIN")  // ADMIN role for delete
+                .anyRequest().authenticated()  // All other requests require authentication
+            )
+            .formLogin((form) -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/booklist", true)  // Redirect to booklist after successful login
+                .permitAll()  // Allow everyone to access the login page
+            )
+            .logout((logout) -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")  // Redirect to login page after logout
+                .permitAll()
+            )
+            .headers().frameOptions().sameOrigin();  // Allow frames for H2 console access
 
-  // Add AuthenticationManager bean
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-    return authenticationConfiguration.getAuthenticationManager();
-  }
+        return http.build();
+    }
 
-  // DaoAuthenticationProvider bean
-  @Bean
-  public DaoAuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    authProvider.setUserDetailsService(userDetailsService);
-    authProvider.setPasswordEncoder(passwordEncoder());
-    return authProvider;
-  }
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return myUserDetailsService;  // Use MyUserDetailsService for user authentication
+    }
 
-  // Password encoder
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();  // BCrypt for password encoding
+    }
 }
+

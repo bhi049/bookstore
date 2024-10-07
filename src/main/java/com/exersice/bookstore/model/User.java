@@ -1,24 +1,29 @@
 package com.exersice.bookstore.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "app_user")  // Rename the table to something other than 'user'
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
+    @Column(unique = true)
     private String username;
+    
     private String password;
     private String email;
     private String role;
 
-    public User() {
-    }
+    // Constructors
+    public User() {}
 
     public User(String username, String password, String email, String role) {
         this.username = username;
@@ -27,7 +32,7 @@ public class User {
         this.role = role;
     }
 
-    // Getters and setters
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -68,4 +73,3 @@ public class User {
         this.role = role;
     }
 }
-
