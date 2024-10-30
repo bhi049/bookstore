@@ -1,17 +1,12 @@
 package com.exersice.bookstore.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import com.exersice.bookstore.model.Book;
 import com.exersice.bookstore.model.BookRepository;
 import com.exersice.bookstore.model.Category;
 import com.exersice.bookstore.model.CategoryRepository;
-
-import java.util.List;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class BookController {
@@ -24,82 +19,105 @@ public class BookController {
         this.categoryRepository = categoryRepository;
     }
 
+    // Show book list
     @GetMapping("/booklist")
-    public String showBookList(Model model) {
-        List<Book> books = (List<Book>) bookRepository.findAll();
-        model.addAttribute("books", books);
-        
-        // Get the authenticated username
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        model.addAttribute("username", currentUsername);
-        
-        return "booklist";
+    public String getBookList(Model model) {
+        model.addAttribute("books", bookRepository.findAll());
+        return "booklist"; // Matches booklist.html
     }
 
+    // Show the form to add a new book (GET request)
     @GetMapping("/addbook")
     public String showAddBookForm(Model model) {
         model.addAttribute("book", new Book());
         model.addAttribute("categories", categoryRepository.findAll());
-        return "addbook";
+        return "addbook"; // Matches addbook.html
     }
 
+    // Handle adding a new book (POST request)
     @PostMapping("/addbook")
-    public String addBook(@ModelAttribute Book book, @RequestParam("categoryId") Long categoryId) {
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + categoryId));
-        book.setCategory(category);
-        bookRepository.save(book);
-        return "redirect:/booklist";
-    }
-
-    @GetMapping("/booklist/edit/{id}")
-    public String showEditBookForm(@PathVariable Long id, Model model) {
-        Book book = bookRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid book ID: " + id));
-        model.addAttribute("book", book);
-        model.addAttribute("categories", categoryRepository.findAll());
-        return "editbook";
-    }
-
-    @PostMapping("/booklist/edit/{id}")
-    public String editBook(@PathVariable Long id, @ModelAttribute Book updatedBook, @RequestParam("categoryId") Long categoryId) {
-        Book book = bookRepository.findById(id)
-                  .orElseThrow(() -> new IllegalArgumentException("Invalid book ID: " + id));
-
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid category ID: " + categoryId));
-
-        book.setCategory(category);
-        book.setTitle(updatedBook.getTitle());
-        book.setAuthor(updatedBook.getAuthor());
-        book.setPublicationYear(updatedBook.getPublicationYear());
-        book.setIsbn(updatedBook.getIsbn());
-        book.setPrice(updatedBook.getPrice());
-        bookRepository.save(book);
-        return "redirect:/booklist";
-    }
-
-    // Restrict delete to only ADMIN role
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/booklist/delete/{id}")
-    public String deleteBook(@PathVariable Long id) {
+    public String addBook(@ModelAttribute("book") Book book, @RequestParam("category") Long categoryId) {
         try {
-            // Check if the book exists before deletion
-            Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid book ID: " + id));
-            bookRepository.deleteById(id);
+            // Debugging: Print book and category information
+            System.out.println("Book details: " + book);
+            System.out.println("Category ID: " + categoryId);
+
+            // Retrieve the category by ID
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid category Id: " + categoryId));
+            book.setCategory(category);
+            // Save the new book
+            bookRepository.save(book);
+            return "redirect:/booklist";
         } catch (Exception e) {
-            // Handle any errors that occur during deletion
-            return "redirect:/booklist?error=true";
+            e.printStackTrace();
+            return "error"; // Matches error.html
         }
-        return "redirect:/booklist?success=true";
     }
 
-    // Show login page
-    @GetMapping("/login")
-    public String login() {
-        return "login";
+    // Show the edit form (GET request)
+    @GetMapping("/booklist/edit/{id}")
+    public String showEditBookForm(@PathVariable("id") Long id, Model model) {
+        try {
+            // Retrieve the book by ID or throw an exception if not found
+            Book book = bookRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid book Id: " + id));
+            model.addAttribute("book", book);
+            model.addAttribute("categories", categoryRepository.findAll());
+            return "editbook"; // Matches editbook.html
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error"; // Matches error.html
+        }
     }
 
-    // Logout functionality handled by Spring Security automatically
+    // Handle form submission (POST request) for updating a book
+    @PostMapping("/booklist/edit/{id}")
+    public String updateBook(@PathVariable("id") Long id, @RequestParam("category") Long categoryId,
+                             @ModelAttribute("book") Book updatedBook, Model model) {
+        try {
+            // Retrieve the existing book entity from the database
+            Book existingBook = bookRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid book Id: " + id));
+
+            // Update fields from the submitted form
+            existingBook.setTitle(updatedBook.getTitle());
+            existingBook.setAuthor(updatedBook.getAuthor());
+            existingBook.setPublicationYear(updatedBook.getPublicationYear());
+            existingBook.setPrice(updatedBook.getPrice());
+            existingBook.setIsbn(updatedBook.getIsbn());
+
+            // Update the category based on the submitted category ID
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid category Id: " + categoryId));
+            existingBook.setCategory(category);
+
+            // Save the updated book
+            bookRepository.save(existingBook);
+
+            return "redirect:/booklist";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "An error occurred while updating the book: " + e.getMessage());
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("book", updatedBook);
+            return "editbook"; // Matches editbook.html
+        }
+    }
+
+    // Delete a book
+    @GetMapping("/booklist/delete/{id}")
+    public String deleteBook(@PathVariable("id") Long id) {
+        try {
+            // Retrieve the book by ID or throw an exception if not found
+            Book book = bookRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid book Id: " + id));
+            // Delete the book
+            bookRepository.delete(book);
+            return "redirect:/booklist";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error"; // Matches error.html
+        }
+    }
 }

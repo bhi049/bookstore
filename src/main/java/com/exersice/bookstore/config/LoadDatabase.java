@@ -15,24 +15,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class LoadDatabase {
 
-  @Bean
-  CommandLineRunner initDatabase(BookRepository bookRepository, CategoryRepository categoryRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-    return args -> {
-      // Create categories
-      Category fiction = new Category("Fiction");
-      Category nonFiction = new Category("Non-Fiction");
+    @Bean
+    CommandLineRunner initDatabase(BookRepository bookRepository, CategoryRepository categoryRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            Category fiction = new Category("Fiction");
+            Category nonFiction = new Category("Non-Fiction");
 
-      categoryRepository.save(fiction);
-      categoryRepository.save(nonFiction);
+            categoryRepository.save(fiction);
+            categoryRepository.save(nonFiction);
 
-      // Add books with categories
-      bookRepository.save(new Book("A Farewell to Arms", "Ernest Hemingway", 1929, "1232323-21", 10.99, fiction));
-      bookRepository.save(new Book("Animal Farm", "George Orwell", 1945, "2212343-5", 8.99, nonFiction));
+            String adminPassword = passwordEncoder.encode("admin");
+            String userPassword = passwordEncoder.encode("password");
 
-      // Add users with encrypted passwords
-      userRepository.save(new User("admin", passwordEncoder.encode("admin"), "admin@bookstore.com", "ADMIN"));
-      userRepository.save(new User("user", passwordEncoder.encode("password"), "user@bookstore.com", "USER"));
+            userRepository.save(new User("admin", adminPassword, "admin@bookstore.com", "ROLE_ADMIN"));
+            userRepository.save(new User("user", userPassword, "user@bookstore.com", "ROLE_USER"));
 
-    };
-  }
+            Book book1 = new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, userPassword, 10.99, fiction);
+            Book book2 = new Book("Sapiens: A Brief History of Humankind", "Yuval Noah Harari", 2011, userPassword, 14.99, nonFiction);
+            
+
+            bookRepository.save(book1);
+            bookRepository.save(book2);
+
+        };
+    }
 }
+

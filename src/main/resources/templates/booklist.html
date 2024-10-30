@@ -16,7 +16,6 @@
                 <th>Title</th>
                 <th>Author</th>
                 <th>Publication Year</th>
-                <th>ISBN</th>
                 <th>Price</th>
                 <th>Category</th>
                 <th>Actions</th>
@@ -27,7 +26,6 @@
                 <td th:text="${book.title}"></td>
                 <td th:text="${book.author}"></td>
                 <td th:text="${book.publicationYear}"></td>
-                <td th:text="${book.isbn}"></td>
                 <td th:text="${book.price}"></td>
                 <td th:text="${book.category.name}"></td>
                 <td>
@@ -46,12 +44,5 @@
     <!-- Add new book link -->
     <p><a href="/addbook">Add Book</a></p>
 
-    <!-- Optional success/error messages after delete operation -->
-    <div th:if="${param.success}">
-        <p style="color:green;">Book successfully deleted!</p>
-    </div>
-    <div th:if="${param.error}">
-        <p style="color:red;">Error occurred while deleting the book!</p>
-    </div>
 </body>
 </html>
