@@ -1,6 +1,5 @@
 package com.exersice.bookstore.config;
 
-import com.exersice.bookstore.service.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,7 +32,7 @@ public class SecurityConfig {
                     .sessionFixation().migrateSession()
                     )
                 .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions().disable());
+                .headers().frameOptions().disable();
         return http.build();
     }
 }
